@@ -1,0 +1,113 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Concern Probes Runtime — Docker Compose
+#
+# Profiles:
+#   local-broker   → start ActiveMQ inside this stack
+#   local-mysql    → start MySQL inside this stack
+#
+# Usage examples:
+#
+#   # Everything local (broker + mysql + probes)
+#   docker compose --profile local-broker --profile local-mysql up --build
+#
+#   # Only probes + local broker (MySQL external)
+#   docker compose --profile local-broker up --build
+#
+#   # Only probes (broker and MySQL external — set BROKER_URL and MYSQL_* in .env)
+#   docker compose up --build
+#
+# Connection addresses are configured in .env
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── ActiveMQ broker (optional — activate with --profile local-broker) ─────
+  activemq:
+    profiles: [local-broker]
+    image: apache/activemq-classic:6.2.0
+    container_name: concern-activemq
+    ports:
+      - "${LOCAL_BROKER_OPENWIRE_PORT:-61616}:61616"
+      - "${LOCAL_BROKER_CONSOLE_PORT:-8161}:8161"
+    environment:
+      ACTIVEMQ_CONNECTION_USER:     ${BROKER_USER:-system}
+      ACTIVEMQ_CONNECTION_PASSWORD: ${BROKER_PASSWORD:-manager}
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null",
+             "--user=${BROKER_USER:-system}",
+             "--password=${BROKER_PASSWORD:-manager}",
+             "http://localhost:8161/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    networks: [concern]
+
+  # ── MySQL (optional — activate with --profile local-mysql) ────────────────
+  mysql:
+    profiles: [local-mysql]
+    image: mysql:8.0
+    container_name: concern-mysql
+    ports:
+      - "${LOCAL_MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE:-concern}
+      MYSQL_USER:          ${MYSQL_USER:-concern}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD:-concern}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "${MYSQL_USER:-concern}",
+             "-p${MYSQL_PASSWORD:-concern}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks: [concern]
+
+  # ── Probe runtime (always started) ────────────────────────────────────────
+  probes:
+    build: .
+    container_name: concern-probes
+    depends_on:
+      activemq:
+        condition: service_healthy
+        required: false    # optional: only waits if activemq is in the active profiles
+      mysql:
+        condition: service_healthy
+        required: false
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      PROBE_NODE_ID:    ${PROBE_NODE_ID:-local-dev-01}
+      ADMIN_TOKEN:      ${ADMIN_TOKEN:-change-me-admin}
+      HTTP_PORT:        8080
+      BUFFER_DB_PATH:   /app/data/buffer.sqlite
+
+      # When local-broker profile is active, broker is reachable at its
+      # container name on the internal network. Otherwise use BROKER_URL from .env.
+      BROKER_URL:       ${BROKER_URL:-tcp://activemq:61616}
+
+      # Expose MySQL coords as env vars (useful if a future probe reads from MySQL)
+      MYSQL_HOST:       ${MYSQL_HOST:-localhost}
+      MYSQL_PORT:       ${MYSQL_PORT:-3306}
+      MYSQL_DATABASE:   ${MYSQL_DATABASE:-concern}
+      MYSQL_USER:       ${MYSQL_USER:-concern}
+      MYSQL_PASSWORD:   ${MYSQL_PASSWORD:-concern}
+
+    volumes:
+      - ./config:/app/config
+      - probes-data:/app/data
+    restart: unless-stopped
+    networks: [concern]
+
+volumes:
+  probes-data: {}
+  mysql-data:  {}
+
+networks:
+  concern:
+    driver: bridge

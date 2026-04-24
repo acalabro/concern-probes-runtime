@@ -1,0 +1,7 @@
+nodeId:                 local-dev-01   # override with env PROBE_NODE_ID
+httpPort:               8080
+probesDir:              config/probes
+bufferDbPath:           data/buffer.sqlite
+retryIntervalSeconds:   15
+adminToken:             change-me-admin  # override with env ADMIN_TOKEN
+uiEnabled:              true

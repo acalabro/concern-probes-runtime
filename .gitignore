@@ -1,0 +1,15 @@
+target/
+*.class
+*.jar
+.idea/
+*.iml
+.vscode/
+data/
+*.sqlite*
+logs/
+certs/
+*.p12
+*.jks
+*.pem
+.DS_Store
+Thumbs.db

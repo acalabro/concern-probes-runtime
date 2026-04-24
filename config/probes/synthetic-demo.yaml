@@ -1,0 +1,34 @@
+# Active source: emits one random event per second.
+# Also exposes POST /ingest/ConcernSyntheticProbe (no auth, for dev only).
+
+id:        synthetic-demo
+name:      "ConcernSyntheticProbe"
+probeType: "ConcernSyntheticProbe"
+
+broker:
+  url:      "tcp://activemq:61616"
+  username: "system"
+  password: "manager"
+  topic:    "DROOLS-InstanceOne"
+
+source:
+  type: synthetic
+  config:
+    intervalMs: 1000
+    valueMin:   0
+    valueMax:   100
+
+ingest:
+  enabled:  true
+  path:     "ConcernSyntheticProbe"
+  authToken: ""
+
+eventTemplate:
+  name:      "SyntheticReading"
+  cepType:   "DROOLS"
+  dataField: "${payload.value}"
+
+buffer:
+  enabled: true
+
+autoStart: true

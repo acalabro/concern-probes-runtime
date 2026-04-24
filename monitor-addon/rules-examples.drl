@@ -1,0 +1,73 @@
+package it.cnr.isti.labsedc.concern.rules;
+
+import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
+import it.cnr.isti.labsedc.concern.utils.ProbeUtils;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Example rules for events from concern-probes-runtime.
+// Prerequisite: ProbeUtils.java from monitor-addon/ must be on the classpath.
+// ─────────────────────────────────────────────────────────────────────────────
+
+rule "high-temperature-alert"
+when
+    $e : ConcernBaseEvent(
+        ProbeUtils.probeType(property) == "ConcernTemperatureProbe",
+        ProbeUtils.jsonDouble(property, "payload.value") != null,
+        ProbeUtils.jsonDouble(property, "payload.value") > 40.0
+    )
+then
+    System.out.printf("[ALERT] node=%s temp=%s%n",
+        ProbeUtils.probeNode($e.getProperty()),
+        ProbeUtils.jsonField($e.getProperty(), "payload.value"));
+end
+
+
+rule "filter-by-node"
+when
+    $e : ConcernBaseEvent(
+        ProbeUtils.probeNode(property) == "edge-torino-01",
+        ProbeUtils.jsonField(property, "payload.status") == "OFFLINE"
+    )
+then
+    System.out.println("[OPS] Torino offline sensor: "
+        + ProbeUtils.jsonField($e.getProperty(), "payload.sensorId"));
+end
+
+
+rule "correlate-temp-and-humidity"
+when
+    $t : ConcernBaseEvent(
+        $node : senderID,
+        ProbeUtils.probeType(property) == "ConcernTemperatureProbe",
+        ProbeUtils.jsonDouble(property, "payload.value") > 40.0
+    )
+    $h : ConcernBaseEvent(
+        senderID == $node,
+        ProbeUtils.probeType(property) == "ConcernHumidityProbe",
+        ProbeUtils.jsonDouble(property, "payload.value") < 20.0,
+        this after[0s, 30s] $t
+    )
+then
+    System.out.printf("[FIRE-RISK] node=%s%n", $node);
+end
+
+
+rule "array-path-example"
+when
+    $e : ConcernBaseEvent(
+        ProbeUtils.jsonDouble(property, "payload.readings[0].value") != null,
+        ProbeUtils.jsonDouble(property, "payload.readings[0].value") > 100.0
+    )
+then
+    System.out.println("[BURST] " + ProbeUtils.jsonField($e.getProperty(), "payload.readings[0]"));
+end
+
+
+rule "distinguish-http-ingest-vs-source"
+when
+    $e : ConcernBaseEvent(
+        ProbeUtils.jsonField(property, "source") == "http-ingest"
+    )
+then
+    // Audit: event arrived via POST /ingest/{name}
+end

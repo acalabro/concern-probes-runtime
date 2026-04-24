@@ -1,0 +1,35 @@
+# Replays a CSV file — equivalent of ConcernUnencryptedProbe.main.
+# Mount the dataset as a volume and adjust path.
+
+id:        gnb-mac-replay
+name:      "ConcernGnbMacProbe"
+probeType: "ConcernGnbMacProbe"
+
+broker:
+  url:      "tcp://activemq:61616"
+  username: "system"
+  password: "manager"
+  topic:    "DROOLS-InstanceOne"
+
+source:
+  type: csv-file
+  config:
+    path:          "/data/GNB_MacScheduler_ordinato.csv"
+    hasHeader:     true
+    delimiter:     ","
+    loop:          false
+    perRowDelayMs: 20
+    columnFilter:  "ULSCH_Round_1"
+
+ingest:
+  enabled: false
+
+eventTemplate:
+  name:      "GnbMacReading"
+  cepType:   "DROOLS"
+  dataField: "${payload.value}"
+
+buffer:
+  enabled: true
+
+autoStart: false   # start via POST /api/probes/gnb-mac-replay/start

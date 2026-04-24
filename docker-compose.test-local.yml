@@ -1,0 +1,58 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.test-local.yml
+#
+# Profilo di test: avvia SOLO il container probe e lo collega ai servizi
+# già in esecuzione su questa macchina (ActiveMQ embedded del monitor e MySQL).
+#
+# Uso:
+#   export UID GID
+#   docker compose --env-file .env.test-local -f docker-compose.test-local.yml up --build
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  probes:
+    build: .
+    container_name: concern-probes-test
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    user: "${UID:-1000}:${GID:-1000}"
+
+    # host.docker.internal → punta all'host su macOS/Windows in automatico.
+    # Su Linux non esiste di default: viene creato da questo extra_hosts.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      PROBE_NODE_ID:   ${PROBE_NODE_ID:-test-local-01}
+      ADMIN_TOKEN:     ${ADMIN_TOKEN:-change-me-admin}
+      HTTP_PORT:       8080
+      BUFFER_DB_PATH:  /app/data/buffer.sqlite
+
+      # Broker = ActiveMQ embedded nel monitor sull'host
+      BROKER_URL:      ${BROKER_URL:-tcp://host.docker.internal:61616}
+
+      # MySQL sull'host (usato dal monitor, non direttamente dalle probe)
+      MYSQL_HOST:      ${MYSQL_HOST:-host.docker.internal}
+      MYSQL_PORT:      ${MYSQL_PORT:-3306}
+      MYSQL_DATABASE:  ${MYSQL_DATABASE:-concern}
+      MYSQL_USER:      ${MYSQL_USER:-concern}
+      MYSQL_PASSWORD:  ${MYSQL_PASSWORD:-concern}
+
+    volumes:
+      - ./config:/app/config
+      - probes-test-data:/app/data
+
+    # Nessun depends_on: broker e MySQL sono processi dell'host, non container
+    restart: unless-stopped
+
+    # Rete host-bridge con accesso all'host
+    networks:
+      - concern-test
+
+volumes:
+  probes-test-data: {}
+
+networks:
+  concern-test:
+    driver: bridge
