@@ -1,0 +1,27 @@
+---
+id: "temperature1"
+name: "Temp2"
+probeType: "ConcernTemperatureProbe1"
+broker:
+  url: "tcp://0.0.0.0:61616"
+  topic: "DROOLS-InstanceOne"
+  username: "system"
+  password: "manager"
+  ssl: false
+  trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
+ingest:
+  enabled: true
+  path: "ConcernTemperatureProbe1"
+  rateLimitPerSecond: 0
+  payloadMode: "passthrough"
+eventTemplate:
+  name: "ProbeEvent"
+  destinationId: "Monitoring"
+  cepType: "DROOLS"
+  propertyPayload: {}
+buffer:
+  enabled: true
+  maxSizeMB: 50
+  maxAgeHours: 24
+  retryIntervalSeconds: 15
+autoStart: true
