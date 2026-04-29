@@ -308,10 +308,14 @@ function renderProbes(list) {
     const src = p.sourceEnabled
       ? `<code>${esc(p.sourceType)}</code>`
       : '<span style="color:var(--text-faint)">—</span>';
+    const broker = p.brokerUrl
+      ? `<span style="color:#7dd3fc;font-size:11px">${esc(p.brokerUrl)}</span>`
+      : '<span style="color:var(--text-faint)">—</span>';
     return `<tr>
-      <td><code style="font-size:10px">${esc(p.id)}</code></td>
-      <td style="color:#93c5fd;font-size:11px">${esc(p.probeType || '')}</td>
+      <td><code style="font-size:11px">${esc(p.id)}</code></td>
+      <td style="color:#93c5fd;font-size:12px">${esc(p.probeType || '')}</td>
       <td><span class="badge ${sc}">${p.state}</span></td>
+      <td>${broker}</td>
       <td>${ingest}</td>
       <td>${src}</td>
       <td style="font-family:var(--font-mono);color:var(--success)">${fmt(p.sentCount)}</td>

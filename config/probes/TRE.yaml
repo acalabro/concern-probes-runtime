@@ -1,0 +1,27 @@
+---
+id: "TRE"
+name: "ConcernTestProbe3"
+probeType: "ConcernTestProbe"
+broker:
+  url: "tcp://localhost:61616"
+  topic: "DROOLS-InstanceOne"
+  username: "system"
+  password: "manager"
+  ssl: false
+  trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
+ingest:
+  enabled: true
+  path: "ConcernTestProbe"
+  rateLimitPerSecond: 0
+  payloadMode: "passthrough"
+eventTemplate:
+  name: "testEvent"
+  destinationId: "Monitoring"
+  cepType: "DROOLS"
+  propertyPayload: {}
+buffer:
+  enabled: true
+  maxSizeMB: 50
+  maxAgeHours: 24
+  retryIntervalSeconds: 15
+autoStart: true

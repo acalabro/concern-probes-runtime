@@ -11,8 +11,6 @@ Standalone, edge-deployable probe runtime for the [CONCERN Monitoring Infrastruc
 
 Probes are **declarative** (YAML files or REST API), run completely independently of the monitor, and can be deployed on any node — datacenter, edge, embedded device — that has network access to the ActiveMQ broker.
 
-![Dashboard](https://github.com/acalabro/concern-probes-runtime/blob/main/runtime.jpg?raw=true)
-
 ---
 
 ## Contents

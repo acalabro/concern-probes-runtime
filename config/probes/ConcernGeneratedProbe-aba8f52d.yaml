@@ -1,7 +1,7 @@
 ---
-id: "temp4"
-name: "temp4"
-probeType: "ConcernTemperatureProbe4"
+id: "ConcernGeneratedProbe-aba8f52d"
+name: "DisplayNameOfProbe"
+probeType: "ConcernGeneratedProbe"
 broker:
   url: "tcp://concern-backend:61616"
   topic: "DROOLS-InstanceOne"
@@ -11,11 +11,11 @@ broker:
   trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
 ingest:
   enabled: true
-  path: "ConcernTemperatureProbe4"
+  path: "ConcernGeneratedProbe"
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:
-  name: "tempEvent"
+  name: "ProbeEvent"
   destinationId: "Monitoring"
   cepType: "DROOLS"
   propertyPayload: {}

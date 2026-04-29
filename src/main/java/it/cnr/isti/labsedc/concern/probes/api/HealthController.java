@@ -22,11 +22,13 @@ public class HealthController {
     }
 
     private void health(Context ctx) {
+        String brokerUrl = System.getenv("BROKER_URL");
         ctx.json(Map.of(
-                "status",   "ok",
-                "nodeId",   nodeId,
-                "uptimeMs", System.currentTimeMillis() - startedAt,
-                "probes",   manager.listStatus().size()
+                "status",    "ok",
+                "nodeId",    nodeId,
+                "uptimeMs",  System.currentTimeMillis() - startedAt,
+                "probes",    manager.listStatus().size(),
+                "brokerUrl", brokerUrl != null ? brokerUrl : "not set (use probe-level config)"
         ));
     }
 

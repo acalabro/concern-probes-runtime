@@ -1,9 +1,9 @@
 ---
-id: "temperature1"
-name: "Temp2"
-probeType: "ConcernTemperatureProbe1"
+id: "UNO"
+name: "ConcernTestProbe"
+probeType: "ConcernTestProbe"
 broker:
-  url: "tcp://0.0.0.0:61616"
+  url: "tcp://host.docker.internal:61616"
   topic: "DROOLS-InstanceOne"
   username: "system"
   password: "manager"
@@ -11,11 +11,11 @@ broker:
   trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
 ingest:
   enabled: true
-  path: "ConcernTemperatureProbe1"
+  path: "ConcernTestProbe"
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:
-  name: "ProbeEvent"
+  name: "testEvent"
   destinationId: "Monitoring"
   cepType: "DROOLS"
   propertyPayload: {}

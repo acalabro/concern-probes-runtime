@@ -8,6 +8,7 @@ public class ProbeStatus {
     public String  name;
     public String  probeType;
     public String  state;
+    public String  brokerUrl;
     public boolean ingestEnabled;
     public String  ingestPath;
     public boolean sourceEnabled;

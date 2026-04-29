@@ -59,10 +59,22 @@ public class EventBuilder {
         PlaceholderResolver r = new PlaceholderResolver(payload);
         String eventName = r.resolve(def.eventTemplate != null ? def.eventTemplate.name       : "ProbeEvent");
         String dest      = r.resolve(def.eventTemplate != null ? def.eventTemplate.destinationId : "Monitoring");
-        String data      = def.eventTemplate != null && def.eventTemplate.dataField != null
-                           ? r.resolve(def.eventTemplate.dataField) : null;
         String sid       = def.eventTemplate != null && def.eventTemplate.sessionId != null
                            ? r.resolve(def.eventTemplate.sessionId) : UUID.randomUUID().toString();
+
+        // data must never be null: MySQLStorageController calls getData().getClass() without null-check.
+        // If dataField is not configured or the placeholder doesn't resolve, fall back to the
+        // serialised payload JSON so the monitor always receives a non-null, meaningful string.
+        String data = "";
+        if (def.eventTemplate != null && def.eventTemplate.dataField != null) {
+            String resolved = r.resolve(def.eventTemplate.dataField);
+            data = resolved != null ? resolved : "";
+        }
+        if (data.isEmpty()) {
+            // fallback: whole payload as JSON string
+            try { data = MAPPER.writeValueAsString(payload); }
+            catch (Exception ignored) { data = payload.toString(); }
+        }
 
         CepType cep = CepType.DROOLS;
         if (def.eventTemplate != null && def.eventTemplate.cepType != null) {

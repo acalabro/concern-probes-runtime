@@ -149,6 +149,7 @@ public class ProbeManager {
         s.name          = d.name;
         s.probeType     = d.probeType;
         s.state         = rt.getState().name();
+        s.brokerUrl     = d.broker != null ? d.broker.url : null;
         s.ingestEnabled = d.ingest != null && d.ingest.enabled;
         s.ingestPath    = s.ingestEnabled ? (d.ingest.path != null ? d.ingest.path : d.probeType) : null;
         s.sourceEnabled = d.source != null;
