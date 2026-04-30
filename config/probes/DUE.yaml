@@ -1,9 +1,9 @@
 ---
 id: "DUE"
-name: "ConcernTestProbe2"
-probeType: "ConcernTestProbe"
+name: "ConcernBaseProbe"
+probeType: "ConcernBaseProbe"
 broker:
-  url: "tcp://activemq:61616"
+  url: "tcp://host.docker.internal:61616"
   topic: "DROOLS-InstanceOne"
   username: "system"
   password: "manager"
@@ -11,11 +11,11 @@ broker:
   trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
 ingest:
   enabled: true
-  path: "ConcernTestProbe"
+  path: "ConcernBaseProbe"
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:
-  name: "testEvent"
+  name: "ConcernBaseEvent"
   destinationId: "Monitoring"
   cepType: "DROOLS"
   propertyPayload: {}

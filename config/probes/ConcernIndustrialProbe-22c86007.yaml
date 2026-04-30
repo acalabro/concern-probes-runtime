@@ -1,7 +1,7 @@
 ---
-id: "ConcernGeneratedProbe-aba8f52d"
-name: "DisplayNameOfProbe"
-probeType: "ConcernGeneratedProbe"
+id: "ConcernIndustrialProbe-22c86007"
+name: "ConcernIndustrialProbe"
+probeType: "ConcernIndustrialProbe"
 broker:
   url: "tcp://concern-backend:61616"
   topic: "DROOLS-InstanceOne"
@@ -11,11 +11,11 @@ broker:
   trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
 ingest:
   enabled: true
-  path: "ConcernGeneratedProbe"
+  path: "ConcernIndustrialProbe"
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:
-  name: "ProbeEvent"
+  name: "testEvent"
   destinationId: "Monitoring"
   cepType: "DROOLS"
   propertyPayload: {}
