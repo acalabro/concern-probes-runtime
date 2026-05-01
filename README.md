@@ -381,9 +381,71 @@ All `/api/**` endpoints require `Authorization: Bearer $ADMIN_TOKEN` when a toke
 | `DELETE` | `/api/probes/{id}` | Delete |
 | `POST` | `/api/probes/{id}/start` | Start |
 | `POST` | `/api/probes/{id}/stop` | Stop |
+| **`GET`** | **`/api/probes/{id}/export`** | **Download ZIP per edge node** |
 | `GET` | `/api/sources` | Available source adapter types |
 | **`POST`** | **`/ingest/{probeName}`** | **Push one event** |
 | **`POST`** | **`/ingest/{probeName}/batch`** | **Push array of events** |
+
+---
+
+## Edge Package Export
+
+Il runtime principale può esportare una probe come pacchetto ZIP self-contained,
+pronto per essere eseguito su un nodo edge con solo Docker installato.
+
+Il pulsante **⬇ Edge ZIP** appare nella colonna azioni della tabella probe nell'Admin UI,
+oppure via REST: `GET /api/probes/{id}/export`.
+
+### Contenuto dello ZIP
+
+```
+concern-probe-{id}-{timestamp}.zip
+├── Dockerfile                    ← FROM eclipse-temurin:21-jre-alpine
+├── concern-probe-edge.jar        ← mini-runtime (no Spring, no UI, no buffer)
+├── config/probes/probe.yaml      ← definizione esatta della probe
+├── .env                          ← BROKER_URL da editare
+├── docker-compose.yml
+└── README.md
+```
+
+### Build del mini-runtime edge (una tantum)
+
+```bash
+cd edge
+mvn -DskipTests package
+cp target/concern-probe-edge.jar ../concern-probe-edge.jar
+```
+
+Oppure configurare il percorso via variabile d'ambiente:
+
+```bash
+EDGE_JAR_PATH=/path/to/concern-probe-edge.jar docker compose up
+```
+
+### Deploy sull'edge node
+
+```bash
+# Sul nodo edge
+unzip concern-probe-temperature-20240101-120000.zip
+cd concern-probe-temperature-20240101-120000/
+nano .env          # modifica solo BROKER_URL
+docker compose up --build -d
+docker compose logs -f
+```
+
+### Comportamento del mini-runtime edge
+
+| Funzionalità | Runtime completo | Mini-runtime edge |
+|---|---|---|
+| Source adapter (csv, tail, synthetic, http-poll) | ✓ | ✓ |
+| Pubblicazione JMS (OpenWire, SSL) | ✓ | ✓ |
+| Wire-format ConcernBaseEvent | ✓ | ✓ (byte-identical) |
+| PlaceholderResolver (`${payload.value}`) | ✓ | ✓ |
+| Buffer SQLite offline | ✓ | ✗ (retry+backoff) |
+| REST API / Admin UI | ✓ | ✗ |
+| HTTP ingest | ✓ | ✗ |
+| Dimensione immagine Docker | ~300 MB | ~200 MB |
+| Dimensione ZIP esportato | — | ~8-12 MB |
 
 ---
 
@@ -551,6 +613,20 @@ concern-probes-runtime/
 │       ├── temperature-http.yaml        # example: HTTP-ingest probe
 │       ├── synthetic-demo.yaml          # example: synthetic source
 │       └── gnb-mac-replay.yaml          # example: CSV replay
+├── edge/                                # mini-runtime per nodi edge
+│   ├── pom.xml                          # dipendenze minime (no Spring, no Javalin)
+│   └── src/main/java/it/cnr/isti/labsedc/concern/
+│       ├── cep/CepType.java             # wire-compatible copy
+│       ├── event/
+│       │   ├── Event.java               # wire-compatible copy
+│       │   ├── ConcernAbstractEvent.java
+│       │   └── ConcernBaseEvent.java
+│       └── probe/
+│           ├── EdgeProbeMain.java       # entry point (main)
+│           ├── jms/EdgePublisher.java   # JMS + retry backoff esponenziale
+│           ├── model/EdgeProbeConfig.java
+│           ├── source/                  # 4 adapter (synthetic, csv, tail, http-poll)
+│           └── util/                    # EdgeEventBuilder, EdgePlaceholderResolver
 ├── monitor-addon/
 │   ├── README.md
 │   ├── rules-examples.drl               # Drools rule templates
@@ -566,7 +642,12 @@ concern-probes-runtime/
 │   │   └── ConcernBaseEvent.java        # wire-compatible copy
 │   └── probes/
 │       ├── ProbesApplication.java       # main entry point
-│       ├── api/                         # REST controllers (probes, ingest, health)
+│       ├── api/
+│       │   ├── AuthFilter.java
+│       │   ├── HealthController.java
+│       │   ├── IngestController.java
+│       │   ├── ProbesController.java
+│       │   └── ProbeExportController.java  # NEW: GET /api/probes/{id}/export
 │       ├── buffer/                      # OfflineBuffer, SqliteBuffer, NoopBuffer
 │       ├── core/                        # ProbeDefinition, ProbeManager, EventBuilder…
 │       ├── jms/                         # ActiveMqPublisher (lazy connect, no statics)
@@ -576,6 +657,19 @@ concern-probes-runtime/
 ├── Dockerfile
 ├── docker-compose.yml
 └── pom.xml
+```
+
+### Build completa
+
+```bash
+# 1. Mini-runtime edge (una tantum, prima di usare l'export)
+cd edge && mvn -DskipTests package
+cp target/concern-probe-edge.jar ../concern-probe-edge.jar
+cd ..
+
+# 2. Runtime completo
+mvn -DskipTests package
+docker compose up --build
 ```
 
 ---

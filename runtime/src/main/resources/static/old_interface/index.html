@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Concern Probes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+
+/* ── login bar ─────────────────────────────────────────────────────── */
+#loginBar{
+  background:#1a2744;border-bottom:2px solid #f59e0b;padding:0;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.5)
+}
+#loginBar form{display:flex;align-items:center;gap:12px;padding:10px 20px}
+#loginBar label{color:#fbbf24;font-size:13px;font-weight:600;white-space:nowrap}
+#loginBar input{
+  flex:1;max-width:300px;padding:7px 10px;background:#0f172a;color:#fbbf24;
+  border:1px solid #f59e0b;border-radius:4px;font-size:13px;
+}
+#loginBar input:focus{outline:none;box-shadow:0 0 0 2px #f59e0baa}
+#loginBar button{
+  padding:7px 16px;background:#f59e0b;color:#0f172a;border:none;border-radius:4px;
+  font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap
+}
+#loginBar button:hover{background:#d97706}
+#loginStatus{color:#6ee7b7;font-size:12px;white-space:nowrap}
+
+/* ── page header ───────────────────────────────────────────────────── */
+header{background:#1e293b;padding:12px 20px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:17px;font-weight:700;letter-spacing:-.01em}
+#nodeInfo{color:#94a3b8;font-size:12px}
+
+/* ── layout ────────────────────────────────────────────────────────── */
+main{padding:20px;max-width:1300px;margin:0 auto}
+
+/* ── section titles ─────────────────────────────────────────────────── */
+.section-title{
+  font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  color:#64748b;margin:24px 0 8px;display:flex;align-items:center;gap:8px
+}
+
+/* ── probes table ───────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:6px;overflow:hidden;font-size:13px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #1e3050}
+th{background:#0f172a;color:#64748b;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#1e3050}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.running{background:#064e3b;color:#6ee7b7}
+.stopped,.created{background:#1e293b;color:#64748b;border:1px solid #334155}
+.error{background:#450a0a;color:#fca5a5}
+
+/* ── buttons ────────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;transition:background .15s}
+.btn-green{background:#065f46;color:#6ee7b7}.btn-green:hover{background:#047857}
+.btn-yellow{background:#78350f;color:#fcd34d}.btn-yellow:hover{background:#92400e}
+.btn-red{background:#7f1d1d;color:#fca5a5}.btn-red:hover{background:#991b1b}
+.btn-blue{background:#1d4ed8;color:#bfdbfe}.btn-blue:hover{background:#2563eb}
+.btn-lg{padding:9px 20px;font-size:13px;border-radius:5px}
+
+/* ── card ───────────────────────────────────────────────────────────── */
+.card{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:20px;margin-bottom:16px}
+
+/* ── form ───────────────────────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+label.fl{font-size:11px;color:#64748b;font-weight:500}
+input.fi,select.fi,textarea.fi{
+  padding:7px 10px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;
+  border-radius:4px;font-size:13px;font-family:inherit
+}
+input.fi:focus,select.fi:focus,textarea.fi:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px #3b82f633}
+select.fi option{background:#1e293b}
+textarea.fi{height:80px;resize:vertical;font-family:monospace;font-size:12px}
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle input[type=checkbox]{width:16px;height:16px;accent-color:#3b82f6}
+.separator{grid-column:1/-1;border:none;border-top:1px solid #334155;margin:4px 0}
+
+/* ── collapse ───────────────────────────────────────────────────────── */
+.collapse-btn{
+  width:100%;text-align:left;background:transparent;border:1px dashed #334155;
+  border-radius:5px;color:#94a3b8;padding:8px 12px;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:space-between
+}
+.collapse-btn:hover{border-color:#3b82f6;color:#93c5fd}
+.collapse-body{display:none;margin-top:12px}
+.collapse-body.open{display:block}
+
+/* ── test event ─────────────────────────────────────────────────────── */
+.test-row{display:flex;gap:10px;align-items:flex-start}
+.test-row>:first-child{flex:1}
+.test-row>:last-child{flex:0 0 auto;padding-top:20px}
+.result{font-size:12px;color:#94a3b8;margin-top:8px;word-break:break-all}
+.result.ok{color:#6ee7b7}.result.err{color:#fca5a5}
+
+/* ── misc ───────────────────────────────────────────────────────────── */
+code{background:#0f172a;padding:1px 6px;border-radius:3px;font-size:11px;font-family:monospace}
+.empty{color:#475569;font-size:13px;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ── 1. LOGIN BAR ───────────────────────────────────────────────── -->
+<div id="loginBar">
+  <form onsubmit="applyToken(event)">
+    <label>🔑 Admin Token</label>
+    <input id="adminToken" type="password" placeholder="Enter admin token (leave empty if auth is disabled)" autocomplete="off">
+    <button type="submit">Connect</button>
+    <span id="loginStatus"></span>
+  </form>
+</div>
+
+<!-- ── 2. PAGE HEADER ─────────────────────────────────────────────── -->
+<header>
+  <h1>⚡ Concern Probes Runtime</h1>
+  <span id="nodeInfo">not connected</span>
+</header>
+
+<main>
+
+<!-- ── 3. ACTIVE PROBES ────────────────────────────────────────────── -->
+<div class="section-title">
+  Active probes
+  <button class="btn btn-green" style="margin-left:auto" onclick="refresh()">↻ Refresh</button>
+</div>
+<table id="probesTbl">
+  <thead><tr>
+    <th>ID</th><th>Type</th><th>State</th>
+    <th>Ingest endpoint</th><th>Source</th>
+    <th>Sent</th><th>Failed</th><th>Buffered</th><th>Actions</th>
+  </tr></thead>
+  <tbody><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+</table>
+
+<!-- ── 4. CREATE NEW PROBE ─────────────────────────────────────────── -->
+<div class="section-title" style="margin-top:32px">Create new probe</div>
+<div class="card">
+  <div class="form-grid">
+    <!-- identity -->
+    <div class="form-group">
+      <label class="fl">Probe ID <small>(slug, no spaces)</small></label>
+      <input class="fi" id="cId" placeholder="e.g. temperature-01">
+    </div>
+    <div class="form-group">
+      <label class="fl">Probe Type <small>(logical class name)</small></label>
+      <input class="fi" id="cType" placeholder="e.g. ConcernTemperatureProbe">
+    </div>
+    <div class="form-group full">
+      <label class="fl">Display Name</label>
+      <input class="fi" id="cName" placeholder="Human-readable name">
+    </div>
+
+    <hr class="separator">
+
+    <!-- broker -->
+    <div class="form-group">
+      <label class="fl">Broker URL</label>
+      <input class="fi" id="cUrl" placeholder="tcp://activemq:61616 or tcp://host.docker.internal:61616">
+    </div>
+    <div class="form-group">
+      <label class="fl">Topic</label>
+      <input class="fi" id="cTopic" placeholder="DROOLS-InstanceOne">
+    </div>
+    <div class="form-group">
+      <label class="fl">Username</label>
+      <input class="fi" id="cUser" placeholder="system" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label class="fl">Password</label>
+      <div style="display:flex;gap:6px">
+        <input class="fi" id="cPass" type="password" placeholder="manager"
+               autocomplete="new-password" style="flex:1">
+        <button type="button" class="btn btn-yellow"
+                style="padding:6px 10px;font-size:13px"
+                onclick="togglePassVis('cPass',this)"
+                title="Show/hide password">👁</button>
+      </div>
+    </div>
+
+    <hr class="separator">
+
+    <!-- ingest -->
+    <div class="form-group full">
+      <label class="toggle">
+        <input type="checkbox" id="cIngestEnabled" checked onchange="toggleIngest()">
+        <span>Enable HTTP Ingest endpoint (POST /ingest/{path})</span>
+      </label>
+    </div>
+    <div class="form-group" id="ingestFields">
+      <label class="fl">Ingest path <small>(URL segment)</small></label>
+      <input class="fi" id="cIngestPath" placeholder="Same as Type if empty">
+    </div>
+    <div class="form-group" id="ingestTokenField">
+      <label class="fl">Ingest Bearer Token <small>(leave empty = no auth)</small></label>
+      <div style="display:flex;gap:6px">
+        <input class="fi" id="cIngestToken" type="password"
+               placeholder="optional secret" autocomplete="new-password" style="flex:1">
+        <button type="button" class="btn btn-yellow"
+                style="padding:6px 10px;font-size:13px"
+                onclick="togglePassVis('cIngestToken',this)"
+                title="Show/hide token">👁</button>
+      </div>
+    </div>
+
+    <hr class="separator">
+
+    <!-- event template -->
+    <div class="form-group">
+      <label class="fl">Event Name</label>
+      <input class="fi" id="cEvName" placeholder="ProbeEvent">
+    </div>
+    <div class="form-group">
+      <label class="fl">CEP Type</label>
+      <select class="fi" id="cCep">
+        <option value="DROOLS" selected>DROOLS</option>
+        <option value="ESPER">ESPER</option>
+      </select>
+    </div>
+    <div class="form-group full">
+      <label class="fl">Data field expression <small>(e.g. ${payload.value})</small></label>
+      <input class="fi" id="cDataField" placeholder="${payload.value}">
+    </div>
+
+    <hr class="separator">
+
+    <!-- source (optional) -->
+    <div class="form-group full">
+      <button type="button" class="collapse-btn" onclick="toggleSource(this)">
+        ＋ Add active source adapter <small>(optional — the probe can also work as pure HTTP ingest)</small>
+        <span id="srcArrow">▼</span>
+      </button>
+      <div class="collapse-body" id="sourceBody">
+        <div class="form-grid" style="margin-top:12px">
+          <div class="form-group">
+            <label class="fl">Source type</label>
+            <select class="fi" id="cSrcType" onchange="updateSourceHint()">
+              <option value="">— none —</option>
+              <option value="synthetic">synthetic</option>
+              <option value="csv-file">csv-file</option>
+              <option value="tail-file">tail-file</option>
+              <option value="http-poll">http-poll</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="fl">Source params (JSON object)</label>
+            <textarea class="fi" id="cSrcParams" placeholder='{"intervalMs": 1000}'></textarea>
+          </div>
+          <div class="form-group full" id="srcHint" style="color:#64748b;font-size:11px"></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="separator">
+
+    <!-- options -->
+    <div class="form-group">
+      <label class="toggle">
+        <input type="checkbox" id="cBuffer" checked>
+        <span>Enable offline buffer (SQLite)</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label class="toggle">
+        <input type="checkbox" id="cAutoStart" checked>
+        <span>Auto-start on creation</span>
+      </label>
+    </div>
+
+    <div class="form-group full" style="margin-top:8px">
+      <button class="btn btn-blue btn-lg" onclick="createProbe()">Create probe</button>
+      <span id="createResult" class="result" style="margin-top:6px;display:block"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. SEND TEST EVENT ───────────────────────────────────────────── -->
+<div class="section-title" style="margin-top:24px">Send a test event</div>
+<div class="card">
+  <div class="form-grid three">
+    <div class="form-group">
+      <label class="fl">Probe ingest path</label>
+      <input class="fi" id="tProbe" placeholder="ConcernTemperatureProbe">
+    </div>
+    <div class="form-group">
+      <label class="fl">Ingest bearer token (if set)</label>
+      <div style="display:flex;gap:6px">
+        <input class="fi" id="tToken" type="password" autocomplete="new-password" style="flex:1">
+        <button type="button" class="btn btn-yellow"
+                style="padding:6px 10px;font-size:13px"
+                onclick="togglePassVis('tToken',this)"
+                title="Show/hide token">👁</button>
+      </div>
+    </div>
+    <div class="form-group full">
+      <label class="fl">JSON payload</label>
+      <textarea class="fi" id="tPayload">{"value": 42.5}</textarea>
+    </div>
+    <div class="form-group full">
+      <button class="btn btn-blue btn-lg" onclick="sendTest()">POST /ingest/{name}</button>
+      <span id="testResult" class="result"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 6. API REFERENCE ─────────────────────────────────────────────── -->
+<div class="section-title" style="margin-top:24px">API quick reference</div>
+<div class="card" style="font-size:12px;color:#64748b;line-height:1.9">
+  <code>GET /health</code> &nbsp;
+  <code>GET /metrics</code> &nbsp;
+  <code>GET /api/probes</code> &nbsp;
+  <code>POST /api/probes</code> (JSON or YAML) &nbsp;
+  <code>POST /api/probes/{id}/start</code> &nbsp;
+  <code>POST /api/probes/{id}/stop</code><br>
+  <strong style="color:#94a3b8">Ingest:</strong> &nbsp;
+  <code>POST /ingest/{probeName}</code> — single event &nbsp;
+  <code>POST /ingest/{probeName}/batch</code> — array of events
+</div>
+
+</main>
+<script src="app.js"></script>
+</body>
+</html>
