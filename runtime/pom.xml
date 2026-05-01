@@ -116,14 +116,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Copia concern-probe-edge.jar dalla directory target/ del modulo edge
-                 nella directory di lavoro del runtime (${project.basedir}/../).
-                 Viene eseguito nella fase package, dopo che edge è già stato buildato
-                 (Maven rispetta l'ordine dei moduli dichiarato nel parent pom.xml).
-                 ProbeExportController leggerà il jar da ${project.basedir}/../concern-probe-edge.jar
-                 che corrisponde alla root del progetto — identico al percorso default
-                 configurato in AppConfig.edgeJarPath = "concern-probe-edge.jar". -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>

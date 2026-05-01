@@ -14,21 +14,6 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.Map;
 
-/**
- * Entry point del mini-runtime edge.
- *
- * Usage:
- *   java -jar concern-probe-edge.jar [probe.yaml]
- *
- * Variabili d'ambiente (sovrascrivono il YAML):
- *   BROKER_URL       → broker ActiveMQ
- *   BROKER_USER      → username broker
- *   BROKER_PASSWORD  → password broker
- *   PROBE_NODE_ID    → identità fisica del nodo (→ senderID di ogni evento)
- *
- * Usa Jackson + jackson-dataformat-yaml per deserializzare il YAML,
- * identico al runtime completo (ProbeConfigStore).
- */
 public class EdgeProbeMain {
 
     private static final Logger log = LoggerFactory.getLogger(EdgeProbeMain.class);
