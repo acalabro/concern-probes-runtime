@@ -1,10 +1,10 @@
 package it.cnr.isti.labsedc.concern.probes.api;
 
-import io.javalin.Javalin;
-import io.javalin.http.Context;
-import it.cnr.isti.labsedc.concern.probes.core.*;
+import java.util.Map;
 
-import java.util.*;
+import io.javalin.Javalin;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeManager;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeStatus;
 
 public class HealthController {
 
@@ -35,16 +35,19 @@ public class HealthController {
     private void metrics(Context ctx) {
         StringBuilder sb = new StringBuilder();
         appendMetric(sb, "probe_events_sent_total",     "Events successfully delivered to broker",    "counter");
-        for (ProbeStatus s : manager.listStatus())
-            sb.append(String.format("probe_events_sent_total{probe=\"%s\",type=\"%s\"} %d%n", s.id, s.probeType, s.sentCount));
+        for (ProbeStatus s : manager.listStatus()) {
+			sb.append(String.format("probe_events_sent_total{probe=\"%s\",type=\"%s\"} %d%n", s.id, s.probeType, s.sentCount));
+		}
 
         appendMetric(sb, "probe_events_failed_total",   "Delivery failures",                          "counter");
-        for (ProbeStatus s : manager.listStatus())
-            sb.append(String.format("probe_events_failed_total{probe=\"%s\"} %d%n", s.id, s.failedCount));
+        for (ProbeStatus s : manager.listStatus()) {
+			sb.append(String.format("probe_events_failed_total{probe=\"%s\"} %d%n", s.id, s.failedCount));
+		}
 
         appendMetric(sb, "probe_events_buffered_total", "Events currently held in the offline buffer", "counter");
-        for (ProbeStatus s : manager.listStatus())
-            sb.append(String.format("probe_events_buffered_total{probe=\"%s\"} %d%n", s.id, s.bufferedCount));
+        for (ProbeStatus s : manager.listStatus()) {
+			sb.append(String.format("probe_events_buffered_total{probe=\"%s\"} %d%n", s.id, s.bufferedCount));
+		}
 
         ctx.contentType("text/plain; version=0.0.4").result(sb.toString());
     }

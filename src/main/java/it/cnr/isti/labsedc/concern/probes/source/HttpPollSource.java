@@ -1,16 +1,21 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sun.org.slf4j.internal.LoggerFactory;
 
-import java.net.URI;
-import java.net.http.*;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.*;
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 
 /**
  * Polls a URL periodically and emits an event per response.
@@ -27,7 +32,9 @@ public class HttpPollSource implements SourceAdapter {
     @Override
     public SourceRunner create(ConcernConfigurableProbe probe, Map<String, Object> p) {
         String url = (String) p.get("url");
-        if (url == null) throw new IllegalArgumentException("http-poll: 'url' required");
+        if (url == null) {
+			throw new IllegalArgumentException("http-poll: 'url' required");
+		}
         long   interval = num(p.get("intervalMs"), 5000L);
         String method   = str(p.get("method"), "GET").toUpperCase();
         String body     = (String) p.get("body");
@@ -95,7 +102,9 @@ public class HttpPollSource implements SourceAdapter {
                 JsonNode root = MAPPER.readTree(bodyStr);
                 if (jsonPath != null && !jsonPath.isBlank()) {
                     JsonNode node = root;
-                    for (String part : jsonPath.split("\\.")) node = node == null ? null : node.get(part);
+                    for (String part : jsonPath.split("\\.")) {
+						node = node == null ? null : node.get(part);
+					}
                     out.put("value", node == null ? null : node.isValueNode() ? node.asText() : node.toString());
                 } else {
                     out = MAPPER.convertValue(root, LinkedHashMap.class);

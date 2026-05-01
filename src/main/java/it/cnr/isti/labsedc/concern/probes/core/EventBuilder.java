@@ -1,14 +1,15 @@
 package it.cnr.isti.labsedc.concern.probes.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.cnr.isti.labsedc.concern.cep.CepType;
-import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
-import it.cnr.isti.labsedc.concern.probes.util.PlaceholderResolver;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.cnr.isti.labsedc.concern.cep.CepType;
+import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
+import it.cnr.isti.labsedc.concern.probes.util.PlaceholderResolver;
 
 /**
  * Converts an arbitrary payload Map into a ConcernBaseEvent.
@@ -87,9 +88,13 @@ public class EventBuilder {
     }
 
     private Map<String, Object> applyMapping(Map<String, Object> raw) {
-        if (raw == null) raw = Map.of();
+        if (raw == null) {
+			raw = Map.of();
+		}
         Map<String, String> tmpl = def.eventTemplate != null ? def.eventTemplate.propertyPayload : null;
-        if (tmpl == null || tmpl.isEmpty()) return raw;
+        if (tmpl == null || tmpl.isEmpty()) {
+			return raw;
+		}
         PlaceholderResolver r = new PlaceholderResolver(raw);
         Map<String, Object> out = new LinkedHashMap<>();
         tmpl.forEach((k, v) -> out.put(k, r.resolve(v)));

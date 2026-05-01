@@ -1,11 +1,14 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import java.util.*;
-import java.util.concurrent.*;
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 
 /**
  * Emits synthetic events at fixed rate. Useful for wiring-up and smoke tests.

@@ -1,13 +1,16 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 
 /**
  * Replays a CSV file row by row, one event per record.
@@ -21,7 +24,9 @@ public class CsvFileSource implements SourceAdapter {
     @Override
     public SourceRunner create(ConcernConfigurableProbe probe, Map<String, Object> p) {
         String path  = (String) p.get("path");
-        if (path == null) throw new IllegalArgumentException("csv-file: 'path' required");
+        if (path == null) {
+			throw new IllegalArgumentException("csv-file: 'path' required");
+		}
         boolean header  = bool(p.get("hasHeader"), true);
         String  delim   = str(p.get("delimiter"), ",");
         boolean loop    = bool(p.get("loop"), false);
@@ -64,12 +69,16 @@ public class CsvFileSource implements SourceAdapter {
                     String[] headers = null;
                     String line; int row = 0;
                     while (!stopped && (line = br.readLine()) != null) {
-                        if (line.isBlank()) continue;
+                        if (line.isBlank()) {
+							continue;
+						}
                         String[] parts = line.split(delim, -1);
                         if (hasHeader && row == 0) { headers = parts; row++; continue; }
                         probe.ingestFromSource(toPayload(parts, headers), "csv-file");
                         row++;
-                        if (perRowDelayMs > 0) Thread.sleep(perRowDelayMs);
+                        if (perRowDelayMs > 0) {
+							Thread.sleep(perRowDelayMs);
+						}
                     }
                 } catch (InterruptedException ie) { return; }
                 catch (Exception e) {
@@ -88,9 +97,13 @@ public class CsvFileSource implements SourceAdapter {
                 return m;
             }
             if (headers != null) {
-                for (int i = 0; i < headers.length && i < parts.length; i++) m.put(headers[i], parts[i]);
+                for (int i = 0; i < headers.length && i < parts.length; i++) {
+					m.put(headers[i], parts[i]);
+				}
             } else {
-                for (int i = 0; i < parts.length; i++) m.put("col" + i, parts[i]);
+                for (int i = 0; i < parts.length; i++) {
+					m.put("col" + i, parts[i]);
+				}
             }
             return m;
         }

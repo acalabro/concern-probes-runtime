@@ -1,15 +1,16 @@
 package it.cnr.isti.labsedc.concern.probes.api;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
-import it.cnr.isti.labsedc.concern.probes.core.*;
-import it.cnr.isti.labsedc.concern.probes.source.SourceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sun.org.slf4j.internal.LoggerFactory;
 
-import java.util.Map;
+import io.javalin.Javalin;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeDefinition;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeManager;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeRuntime;
+import it.cnr.isti.labsedc.concern.probes.source.SourceRegistry;
 
 public class ProbesController {
 
@@ -52,7 +53,9 @@ public class ProbesController {
         try {
             ProbeDefinition def = parse(ctx);
             ProbeRuntime rt = manager.createOrUpdate(def);
-            if (def.autoStart) manager.start(def.id);
+            if (def.autoStart) {
+				manager.start(def.id);
+			}
             ctx.status(201).json(manager.statusOf(rt.getDefinition().id));
         } catch (Exception e) { log.warn("create: {}", e.getMessage()); ctx.status(400).json(Map.of("error", e.getMessage())); }
     }
@@ -62,7 +65,9 @@ public class ProbesController {
             ProbeDefinition def = parse(ctx);
             def.id = ctx.pathParam("id");
             ProbeRuntime rt = manager.createOrUpdate(def);
-            if (def.autoStart) manager.start(def.id);
+            if (def.autoStart) {
+				manager.start(def.id);
+			}
             ctx.json(manager.statusOf(rt.getDefinition().id));
         } catch (Exception e) { ctx.status(400).json(Map.of("error", e.getMessage())); }
     }
@@ -84,8 +89,9 @@ public class ProbesController {
 
     private ProbeDefinition parse(Context ctx) throws Exception {
         String ct = ctx.header("Content-Type");
-        if (ct != null && (ct.contains("yaml") || ct.contains("yml")))
-            return YAML.readValue(ctx.body(), ProbeDefinition.class);
+        if (ct != null && (ct.contains("yaml") || ct.contains("yml"))) {
+			return YAML.readValue(ctx.body(), ProbeDefinition.class);
+		}
         return ctx.bodyAsClass(ProbeDefinition.class);
     }
 }

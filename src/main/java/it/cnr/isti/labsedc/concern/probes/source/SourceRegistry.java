@@ -1,13 +1,13 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
-import it.cnr.isti.labsedc.concern.probes.core.SourceConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
+import it.cnr.isti.labsedc.concern.probes.core.SourceConfig;
 
 public class SourceRegistry {
 
@@ -22,9 +22,13 @@ public class SourceRegistry {
     }
 
     public SourceRunner create(SourceConfig cfg, ConcernConfigurableProbe probe) {
-        if (cfg == null || cfg.type == null) return null;
+        if (cfg == null || cfg.type == null) {
+			return null;
+		}
         SourceAdapter a = byType.get(cfg.type);
-        if (a == null) throw new IllegalArgumentException("unknown source type: " + cfg.type);
+        if (a == null) {
+			throw new IllegalArgumentException("unknown source type: " + cfg.type);
+		}
         return a.create(probe, cfg.config != null ? cfg.config : Map.of());
     }
 

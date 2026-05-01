@@ -1,15 +1,22 @@
 package it.cnr.isti.labsedc.concern.probes.core;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
 import it.cnr.isti.labsedc.concern.probes.buffer.OfflineBuffer;
 import it.cnr.isti.labsedc.concern.probes.persist.ProbeConfigStore;
 import it.cnr.isti.labsedc.concern.probes.source.SourceAdapter;
 import it.cnr.isti.labsedc.concern.probes.source.SourceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProbeManager {
 
@@ -46,7 +53,9 @@ public class ProbeManager {
             for (ProbeDefinition def : store.loadAll()) {
                 try {
                     register(def);
-                    if (def.autoStart) start(def.id);
+                    if (def.autoStart) {
+						start(def.id);
+					}
                 } catch (Exception e) {
                     log.error("bootstrap failed for {}: {}", def.id, e.getMessage());
                 }
@@ -106,7 +115,9 @@ public class ProbeManager {
         Map<String, Object> sourceParams = Map.of();
         if (def.source != null && def.source.type != null) {
             adapter = sources.getAdapter(def.source.type);
-            if (adapter == null) log.warn("unknown source type '{}' for probe {}", def.source.type, def.id);
+            if (adapter == null) {
+				log.warn("unknown source type '{}' for probe {}", def.source.type, def.id);
+			}
             sourceParams = def.source.config != null ? def.source.config : Map.of();
         }
         ProbeRuntime rt = new ProbeRuntime(def, probe, adapter, sourceParams);
@@ -118,7 +129,9 @@ public class ProbeManager {
 
     private void destroyInternal(String id) {
         ProbeRuntime rt = byId.remove(id);
-        if (rt == null) return;
+        if (rt == null) {
+			return;
+		}
         rt.destroy();
         if (rt.getDefinition().ingest != null) {
             String p = rt.getDefinition().ingest.path != null
@@ -138,7 +151,9 @@ public class ProbeManager {
 
     private ProbeRuntime required(String id) {
         ProbeRuntime rt = byId.get(id);
-        if (rt == null) throw new NoSuchElementException("no probe: " + id);
+        if (rt == null) {
+			throw new NoSuchElementException("no probe: " + id);
+		}
         return rt;
     }
 

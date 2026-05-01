@@ -1,19 +1,25 @@
 package it.cnr.isti.labsedc.concern.probes;
 
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.sun.org.slf4j.internal.LoggerFactory;
+
 import io.javalin.Javalin;
-import io.javalin.http.staticfiles.Location;
-import it.cnr.isti.labsedc.concern.probes.api.*;
-import it.cnr.isti.labsedc.concern.probes.buffer.*;
-import it.cnr.isti.labsedc.concern.probes.core.*;
+import it.cnr.isti.labsedc.concern.probes.api.AuthFilter;
+import it.cnr.isti.labsedc.concern.probes.api.HealthController;
+import it.cnr.isti.labsedc.concern.probes.api.IngestController;
+import it.cnr.isti.labsedc.concern.probes.api.ProbesController;
+import it.cnr.isti.labsedc.concern.probes.buffer.NoopBuffer;
+import it.cnr.isti.labsedc.concern.probes.buffer.OfflineBuffer;
+import it.cnr.isti.labsedc.concern.probes.buffer.SqliteBuffer;
+import it.cnr.isti.labsedc.concern.probes.core.AppConfig;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeManager;
 import it.cnr.isti.labsedc.concern.probes.persist.ProbeConfigStore;
 import it.cnr.isti.labsedc.concern.probes.source.SourceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.InetAddress;
-import java.nio.file.*;
 
 /**
  * Entry point. Run:
@@ -79,26 +85,51 @@ public class ProbesApplication {
 
     private static void applyEnv(AppConfig cfg) throws Exception {
         String v;
-        if ((v = System.getenv("PROBE_NODE_ID"))  != null) cfg.nodeId        = v;
-        if ((v = System.getenv("HTTP_PORT"))       != null) cfg.httpPort      = Integer.parseInt(v);
-        if ((v = System.getenv("PROBES_DIR"))      != null) cfg.probesDir     = v;
-        if ((v = System.getenv("BUFFER_DB_PATH"))  != null) cfg.bufferDbPath  = v;
-        if ((v = System.getenv("ADMIN_TOKEN"))     != null) cfg.adminToken    = v;
+        if ((v = System.getenv("PROBE_NODE_ID"))  != null) {
+			cfg.nodeId        = v;
+		}
+        if ((v = System.getenv("HTTP_PORT"))       != null) {
+			cfg.httpPort      = Integer.parseInt(v);
+		}
+        if ((v = System.getenv("PROBES_DIR"))      != null) {
+			cfg.probesDir     = v;
+		}
+        if ((v = System.getenv("BUFFER_DB_PATH"))  != null) {
+			cfg.bufferDbPath  = v;
+		}
+        if ((v = System.getenv("ADMIN_TOKEN"))     != null) {
+			cfg.adminToken    = v;
+		}
         // MySQL coords (for future source adapters)
-        if ((v = System.getenv("MYSQL_HOST"))      != null) cfg.mysqlHost     = v;
-        if ((v = System.getenv("MYSQL_PORT"))      != null) cfg.mysqlPort     = Integer.parseInt(v);
-        if ((v = System.getenv("MYSQL_DATABASE"))  != null) cfg.mysqlDatabase = v;
-        if ((v = System.getenv("MYSQL_USER"))      != null) cfg.mysqlUser     = v;
-        if ((v = System.getenv("MYSQL_PASSWORD"))  != null) cfg.mysqlPassword = v;
-        if ((v = System.getenv("EDGE_JAR_PATH"))   != null) cfg.edgeJarPath   = v;
-        if (cfg.nodeId == null || cfg.nodeId.isBlank())
-            cfg.nodeId = InetAddress.getLocalHost().getHostName();
+        if ((v = System.getenv("MYSQL_HOST"))      != null) {
+			cfg.mysqlHost     = v;
+		}
+        if ((v = System.getenv("MYSQL_PORT"))      != null) {
+			cfg.mysqlPort     = Integer.parseInt(v);
+		}
+        if ((v = System.getenv("MYSQL_DATABASE"))  != null) {
+			cfg.mysqlDatabase = v;
+		}
+        if ((v = System.getenv("MYSQL_USER"))      != null) {
+			cfg.mysqlUser     = v;
+		}
+        if ((v = System.getenv("MYSQL_PASSWORD"))  != null) {
+			cfg.mysqlPassword = v;
+		}
+        if ((v = System.getenv("EDGE_JAR_PATH"))   != null) {
+			cfg.edgeJarPath   = v;
+		}
+        if (cfg.nodeId == null || cfg.nodeId.isBlank()) {
+			cfg.nodeId = InetAddress.getLocalHost().getHostName();
+		}
     }
 
     private static OfflineBuffer createBuffer(AppConfig cfg) {
         try {
             Path p = Path.of(cfg.bufferDbPath);
-            if (p.getParent() != null) Files.createDirectories(p.getParent());
+            if (p.getParent() != null) {
+				Files.createDirectories(p.getParent());
+			}
             return new SqliteBuffer(cfg.bufferDbPath);
         } catch (Exception e) {
             log.error("SQLite buffer failed ({}), using noop", e.getMessage());

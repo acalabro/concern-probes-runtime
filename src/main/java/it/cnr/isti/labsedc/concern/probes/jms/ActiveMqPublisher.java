@@ -1,16 +1,17 @@
 package it.cnr.isti.labsedc.concern.probes.jms;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQSslConnectionFactory;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
 import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
 import it.cnr.isti.labsedc.concern.probes.core.BrokerConfig;
 import jakarta.jms.*;
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.ActiveMQSslConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Per-probe JMS publisher. Fully instance-scoped — no static state.
@@ -87,10 +88,18 @@ public class ActiveMqPublisher {
     private ActiveMQConnectionFactory buildSslFactory() throws JMSException {
         try {
             var f = new ActiveMQSslConnectionFactory(cfg.url);
-            if (cfg.keyStore != null)           System.setProperty("javax.net.ssl.keyStore",           cfg.keyStore);
-            if (cfg.keyStorePassword != null)   System.setProperty("javax.net.ssl.keyStorePassword",   cfg.keyStorePassword);
-            if (cfg.trustStore != null)         f.setTrustStore(cfg.trustStore);
-            if (cfg.trustStorePassword != null) f.setTrustStorePassword(cfg.trustStorePassword);
+            if (cfg.keyStore != null) {
+				System.setProperty("javax.net.ssl.keyStore",           cfg.keyStore);
+			}
+            if (cfg.keyStorePassword != null) {
+				System.setProperty("javax.net.ssl.keyStorePassword",   cfg.keyStorePassword);
+			}
+            if (cfg.trustStore != null) {
+				f.setTrustStore(cfg.trustStore);
+			}
+            if (cfg.trustStorePassword != null) {
+				f.setTrustStorePassword(cfg.trustStorePassword);
+			}
             f.setTrustAllPackages(false);
             f.setTrustedPackages(new ArrayList<>(Arrays.asList(resolvedPackages().split(","))));
             return f;
@@ -107,9 +116,15 @@ public class ActiveMqPublisher {
     public synchronized void close() { closeQuietly(); }
 
     private void closeQuietly() {
-        try { if (producer   != null) producer.close(); }   catch (Exception ignored) {}
-        try { if (session    != null) session.close(); }    catch (Exception ignored) {}
-        try { if (connection != null) connection.close(); } catch (Exception ignored) {}
+        try { if (producer   != null) {
+			producer.close();
+		} }   catch (Exception ignored) {}
+        try { if (session    != null) {
+			session.close();
+		} }    catch (Exception ignored) {}
+        try { if (connection != null) {
+			connection.close();
+		} } catch (Exception ignored) {}
         producer = null; session = null; connection = null;
     }
 }

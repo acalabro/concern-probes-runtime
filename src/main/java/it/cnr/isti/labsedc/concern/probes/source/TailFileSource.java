@@ -1,13 +1,15 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.RandomAccessFile;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 
 /**
  * Follows a file (like tail -F) or polls a single-line file repeatedly.
@@ -21,7 +23,9 @@ public class TailFileSource implements SourceAdapter {
     @Override
     public SourceRunner create(ConcernConfigurableProbe probe, Map<String, Object> p) {
         String path = (String) p.get("path");
-        if (path == null) throw new IllegalArgumentException("tail-file: 'path' required");
+        if (path == null) {
+			throw new IllegalArgumentException("tail-file: 'path' required");
+		}
         String mode     = p.getOrDefault("mode", "tail").toString();
         long   interval = ((Number) p.getOrDefault("pollIntervalMs", 1000L)).longValue();
         boolean fromStart = p.getOrDefault("fromBeginning", false) instanceof Boolean b && b;
@@ -52,8 +56,9 @@ public class TailFileSource implements SourceAdapter {
             while (!stopped) {
                 try {
                     String content = Files.readString(Path.of(path)).trim();
-                    if (!content.isEmpty())
-                        probe.ingestFromSource(Map.of("value", content, "ts", System.currentTimeMillis()), "tail-file");
+                    if (!content.isEmpty()) {
+						probe.ingestFromSource(Map.of("value", content, "ts", System.currentTimeMillis()), "tail-file");
+					}
                     Thread.sleep(pollMs);
                 } catch (InterruptedException ie) { return; }
                 catch (Exception e) { log.warn("poll: {}", e.getMessage()); sleep(pollMs); }
@@ -62,12 +67,15 @@ public class TailFileSource implements SourceAdapter {
 
         private void tailLoop() {
             try (RandomAccessFile raf = new RandomAccessFile(path, "r")) {
-                if (!fromStart) raf.seek(raf.length());
+                if (!fromStart) {
+					raf.seek(raf.length());
+				}
                 while (!stopped) {
                     String line = raf.readLine();
                     if (line == null) { Thread.sleep(pollMs); continue; }
-                    if (!line.isBlank())
-                        probe.ingestFromSource(Map.of("value", line, "ts", System.currentTimeMillis()), "tail-file");
+                    if (!line.isBlank()) {
+						probe.ingestFromSource(Map.of("value", line, "ts", System.currentTimeMillis()), "tail-file");
+					}
                 }
             } catch (InterruptedException ie) {
                 // normal stop

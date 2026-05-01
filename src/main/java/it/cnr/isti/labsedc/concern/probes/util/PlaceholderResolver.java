@@ -16,7 +16,9 @@ public class PlaceholderResolver {
     }
 
     public String resolve(String template) {
-        if (template == null) return null;
+        if (template == null) {
+			return null;
+		}
         Matcher m = PH.matcher(template);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
@@ -32,10 +34,10 @@ public class PlaceholderResolver {
             case "uuid" -> java.util.UUID.randomUUID().toString();
             case "now"  -> String.valueOf(System.currentTimeMillis());
             default -> {
-                if (expr.startsWith("env."))     yield System.getenv(expr.substring(4));
-                if (expr.startsWith("sys."))     yield System.getProperty(expr.substring(4));
-                if (expr.startsWith("payload.")) yield lookupPath(payload, expr.substring(8));
-                if (expr.equals("payload"))      yield payload.toString();
+                if (expr.startsWith("env.")){yield System.getenv(expr.substring(4));}
+                if (expr.startsWith("sys.")){yield System.getProperty(expr.substring(4));}
+                if (expr.startsWith("payload.")){yield lookupPath(payload, expr.substring(8));}
+                if (expr.equals("payload")){yield payload.toString();}
                 yield null;
             }
         };
@@ -45,9 +47,14 @@ public class PlaceholderResolver {
     private String lookupPath(Map<String, Object> root, String path) {
         Object cur = root;
         for (String p : path.split("\\.")) {
-            if (cur instanceof Map<?,?> mp) cur = ((Map<String,Object>) mp).get(p);
-            else return null;
-            if (cur == null) return null;
+            if (cur instanceof Map<?,?> mp) {
+				cur = ((Map<String,Object>) mp).get(p);
+			} else {
+				return null;
+			}
+            if (cur == null) {
+				return null;
+			}
         }
         return String.valueOf(cur);
     }

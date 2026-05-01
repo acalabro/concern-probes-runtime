@@ -1,7 +1,8 @@
 package it.cnr.isti.labsedc.concern.probes.source;
 
-import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 import java.util.Map;
+
+import it.cnr.isti.labsedc.concern.probes.core.ConcernConfigurableProbe;
 
 public interface SourceAdapter {
     String type();

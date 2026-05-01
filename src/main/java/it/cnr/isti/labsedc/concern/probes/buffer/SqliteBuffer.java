@@ -1,13 +1,21 @@
 package it.cnr.isti.labsedc.concern.probes.buffer;
 
-import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.sql.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
 
 public class SqliteBuffer implements OfflineBuffer {
 
@@ -59,7 +67,9 @@ public class SqliteBuffer implements OfflineBuffer {
                 "SELECT id,payload_b64 FROM buffered_events WHERE probe_id=? ORDER BY id ASC LIMIT 1")) {
             ps.setString(1, probeId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next()) {
+					return null;
+				}
                 long rowId = rs.getLong("id");
                 byte[] bytes = Base64.getDecoder().decode(rs.getString("payload_b64"));
                 try (var ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
@@ -77,7 +87,9 @@ public class SqliteBuffer implements OfflineBuffer {
     @Override
     public void ack(String probeId, ConcernBaseEvent<?> event) {
         Long rowId = peeked.remove(probeId);
-        if (rowId == null) return;
+        if (rowId == null) {
+			return;
+		}
         synchronized (lock) {
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM buffered_events WHERE id=?")) {
                 ps.setLong(1, rowId);

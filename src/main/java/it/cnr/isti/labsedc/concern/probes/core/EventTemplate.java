@@ -1,8 +1,9 @@
 package it.cnr.isti.labsedc.concern.probes.core;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EventTemplate {

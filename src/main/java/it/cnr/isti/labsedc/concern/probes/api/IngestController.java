@@ -1,14 +1,17 @@
 package it.cnr.isti.labsedc.concern.probes.api;
 
-import io.javalin.Javalin;
-import io.javalin.http.Context;
-import it.cnr.isti.labsedc.concern.probes.core.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
+import io.javalin.Javalin;
+import it.cnr.isti.labsedc.concern.probes.core.IngestResult;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeManager;
+import it.cnr.isti.labsedc.concern.probes.core.ProbeRuntime;
 
 /**
  * HTTP ingest endpoints. Any external caller (sensor, script, service) can POST a
@@ -32,11 +35,14 @@ public class IngestController {
     // ─── single event ──────────────────────────────────────────────────────
 
     private void ingestOne(Context ctx) {
-        ProbeRuntime rt = resolve(ctx); if (rt == null) return;
-        if (!checkAuth(ctx, rt)) return;
-        if (!checkRate(ctx, rt)) return;
+        ProbeRuntime rt = resolve(ctx); 
+        if ((rt == null) || !checkAuth(ctx, rt) || !checkRate(ctx, rt)) {
+			return;
+		}
 
-        Map<String, Object> payload = readPayload(ctx); if (payload == null) return;
+        Map<String, Object> payload = readPayload(ctx); if (payload == null) {
+			return;
+		}
         IngestResult result = rt.getProbe().ingestHttp(payload);
         ctx.status(result.httpStatus()).json(resultMap(result));
     }
@@ -45,8 +51,10 @@ public class IngestController {
 
     @SuppressWarnings("unchecked")
     private void ingestBatch(Context ctx) {
-        ProbeRuntime rt = resolve(ctx); if (rt == null) return;
-        if (!checkAuth(ctx, rt)) return;
+        ProbeRuntime rt = resolve(ctx); 
+        if ((rt == null) || !checkAuth(ctx, rt)) {
+			return;
+		}
 
         List<Map<String, Object>> items;
         try { items = ctx.bodyAsClass(List.class); }
@@ -81,7 +89,9 @@ public class IngestController {
 
     private boolean checkAuth(Context ctx, ProbeRuntime rt) {
         String expected = rt.getDefinition().ingest.authToken;
-        if (expected == null || expected.isBlank()) return true;
+        if (expected == null || expected.isBlank()) {
+			return true;
+		}
         String auth = ctx.header("Authorization");
         if (auth == null || !auth.startsWith("Bearer ") || !expected.equals(auth.substring(7).trim())) {
             ctx.status(401).json(Map.of("error", "invalid or missing bearer token")); return false;
@@ -91,7 +101,9 @@ public class IngestController {
 
     private boolean checkRate(Context ctx, ProbeRuntime rt) {
         int limit = rt.getDefinition().ingest.rateLimitPerSecond;
-        if (limit <= 0) return true;
+        if (limit <= 0) {
+			return true;
+		}
         RateLimiter rl = limiters.computeIfAbsent(rt.getDefinition().id, k -> new RateLimiter(limit));
         if (!rl.tryAcquire()) {
             ctx.status(429).json(Map.of("error", "rate limit exceeded (" + limit + "/s)")); return false;
@@ -103,7 +115,9 @@ public class IngestController {
     private Map<String, Object> readPayload(Context ctx) {
         try {
             Object body = ctx.bodyAsClass(Object.class);
-            if (body instanceof Map) return (Map<String, Object>) body;
+            if (body instanceof Map) {
+				return (Map<String, Object>) body;
+			}
             Map<String, Object> wrap = new LinkedHashMap<>();
             wrap.put("value", body);
             return wrap;
@@ -116,7 +130,9 @@ public class IngestController {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("status",  r.status().name().toLowerCase());
         m.put("eventId", r.eventId() != null ? r.eventId() : "");
-        if (r.error() != null) m.put("error", r.error());
+        if (r.error() != null) {
+			m.put("error", r.error());
+		}
         return m;
     }
 

@@ -1,6 +1,7 @@
 package it.cnr.isti.labsedc.concern.event;
 
 import java.io.Serializable;
+
 import it.cnr.isti.labsedc.concern.cep.CepType;
 
 /**

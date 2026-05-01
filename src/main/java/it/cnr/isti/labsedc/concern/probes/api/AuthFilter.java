@@ -10,12 +10,15 @@ public class AuthFilter {
     public AuthFilter(String adminToken) { this.adminToken = adminToken; }
 
     public void register(Javalin app) {
-        if (adminToken == null || adminToken.isBlank()) return;
+        if (adminToken == null || adminToken.isBlank()) {
+			return;
+		}
         app.before("/api/*", ctx -> {
             String auth = ctx.header("Authorization");
             if (auth == null || !auth.startsWith("Bearer ")
-                    || !adminToken.equals(auth.substring(7).trim()))
-                throw new UnauthorizedResponse("admin token required");
+                    || !adminToken.equals(auth.substring(7).trim())) {
+				throw new UnauthorizedResponse("admin token required");
+			}
         });
     }
 }

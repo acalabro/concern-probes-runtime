@@ -1,9 +1,9 @@
 ---
-id: "DUE"
-name: "ConcernIndustrialProbe2"
-probeType: "ConcernIndustrialProbe2"
+id: "TRE"
+name: "ConcernIndustrialProbe3"
+probeType: "ConcernIndustrialProbe3"
 broker:
-  url: "tcp://host.docker.internal:61616"
+  url: "tcp://concern-backend:61616"
   topic: "DROOLS-InstanceOne"
   username: "system"
   password: "manager"
@@ -11,7 +11,7 @@ broker:
   trustedPackages: "it.cnr.isti.labsedc.concern,java.lang,java.util,javax.security"
 ingest:
   enabled: true
-  path: "ConcernIndustrialProbe2"
+  path: "ConcernIndustrialProbe3"
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:

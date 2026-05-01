@@ -1,14 +1,14 @@
 package it.cnr.isti.labsedc.concern.probes.core;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
 import it.cnr.isti.labsedc.concern.event.ConcernBaseEvent;
 import it.cnr.isti.labsedc.concern.probes.buffer.OfflineBuffer;
 import it.cnr.isti.labsedc.concern.probes.jms.ActiveMqPublisher;
 import jakarta.jms.JMSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Self-contained configurable probe. Owns its own JMS publisher — no shared
@@ -83,7 +83,9 @@ public class ConcernConfigurableProbe {
 
     /** Flush buffered events. Called periodically by ProbeManager. */
     public int flushBuffer() {
-        if (buffer == null || def.buffer == null || !def.buffer.enabled) return 0;
+        if (buffer == null || def.buffer == null || !def.buffer.enabled) {
+			return 0;
+		}
         int flushed = 0;
         ConcernBaseEvent<?> e;
         while ((e = buffer.peek(def.id)) != null) {
@@ -98,7 +100,9 @@ public class ConcernConfigurableProbe {
                 break;
             }
         }
-        if (flushed > 0) log.info("[{}] flushed {} buffered events", def.name, flushed);
+        if (flushed > 0) {
+			log.info("[{}] flushed {} buffered events", def.name, flushed);
+		}
         return flushed;
     }
 

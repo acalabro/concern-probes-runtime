@@ -1,11 +1,11 @@
 package it.cnr.isti.labsedc.concern.probes.core;
 
+import java.util.Map;
+
+import com.sun.org.slf4j.internal.LoggerFactory;
+
 import it.cnr.isti.labsedc.concern.probes.source.SourceAdapter;
 import it.cnr.isti.labsedc.concern.probes.source.SourceRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * Lifecycle wrapper for a probe + optional active source.
@@ -39,7 +39,9 @@ public class ProbeRuntime {
     }
 
     public synchronized void start() {
-        if (state == State.RUNNING) return;
+        if (state == State.RUNNING) {
+			return;
+		}
         if (sourceAdapter != null) {
             try {
                 currentRunner = sourceAdapter.create(probe, sourceParams);
@@ -55,7 +57,9 @@ public class ProbeRuntime {
     }
 
     public synchronized void stop() {
-        if (state == State.STOPPED || state == State.CREATED) return;
+        if (state == State.STOPPED || state == State.CREATED) {
+			return;
+		}
         if (currentRunner != null) {
             try { currentRunner.stop(); } catch (Exception ignored) {}
             currentRunner = null;

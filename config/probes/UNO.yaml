@@ -1,9 +1,9 @@
 ---
-id: "ConcernIndustrialProbe-22c86007"
+id: "UNO"
 name: "ConcernIndustrialProbe"
 probeType: "ConcernIndustrialProbe"
 broker:
-  url: "tcp://concern-backend:61616"
+  url: "tcp://localhost:61616"
   topic: "DROOLS-InstanceOne"
   username: "system"
   password: "manager"
@@ -15,7 +15,7 @@ ingest:
   rateLimitPerSecond: 0
   payloadMode: "passthrough"
 eventTemplate:
-  name: "testEvent"
+  name: "ProbeEvent"
   destinationId: "Monitoring"
   cepType: "DROOLS"
   propertyPayload: {}
